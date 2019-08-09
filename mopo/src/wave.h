@@ -271,8 +271,29 @@ namespace mopo {
         return -upsaw(t);
       }
 
+
+//    static mopo_float s_custom_lookup[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
+      static mopo_float s_custom_lookup[2 * 1024];
       static inline mopo_float upsaw(mopo_float t) {
-        return t * 2 - 1;
+//         return t * 2 - 1;
+
+//        if (t < 0.5) {
+//          return cosf(asinf(t * 4 - 1));
+//        } else {
+//          return -cosf(asinf(t * 4 - 3));
+//        }
+
+        if (t <= 0) {
+          return s_custom_lookup[0];
+        }
+        if (t >= 1) {
+          return s_custom_lookup[1023];
+        }
+
+        mopo_float f;
+        mopo_float remd = utils::mod(t*1023, &f);
+        int i = static_cast<int>(f);
+        return (1-remd)*s_custom_lookup[i] + remd*s_custom_lookup[i+1];
       }
 
       static inline mopo_float hannwave(mopo_float t) {

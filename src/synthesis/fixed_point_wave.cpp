@@ -16,10 +16,15 @@
 
 #include "fixed_point_wave.h"
 
+#include <string>
+#include <cstring>
+#include <random>
+
 namespace mopo {
 
   FixedPointWaveLookup::FixedPointWaveLookup() {
     preprocessSin();
+    preprocessCustom();
     preprocessTriangle();
     preprocessSquare();
     preprocessUpSaw();
@@ -100,7 +105,39 @@ namespace mopo {
     preprocessDiffs(down_saw_);
   }
 
+  void FixedPointWaveLookup::writeOutSvg(
+    const std::string& filename,
+    wave_type wave
+  ) {
+
+    // Write out the result to an SVG file.
+    SvgOutput svg(filename);
+    svg.set_scale(100, true);
+    svg.set_stroke(0x000000, 1, 0.5);
+    svg.set_fill(0x000000, 0);
+
+    for (int h = 0; h < HARMONICS; ++h) {
+      std::vector<SvgOutput::Point2> waveform;
+      for (int i = 0; i < FIXED_LOOKUP_SIZE; i+=1) {
+        SvgOutput::Point2 begin;
+        begin.x = double(i) / FIXED_LOOKUP_SIZE + 1.5*h;
+        begin.y = wave[h][i];
+
+        waveform.push_back(begin);
+      }
+      svg.write_path("h" + std::to_string(h), waveform);
+    }
+
+
+    svg.set_stroke(0x999999, 1);
+    svg.write_line("plus_one", SvgOutput::Point2(0, 1), SvgOutput::Point2(HARMONICS*1.5 ,1));
+    svg.write_line("zero", SvgOutput::Point2(0, 0), SvgOutput::Point2(HARMONICS*1.5 ,0));
+    svg.write_line("minus_one", SvgOutput::Point2(0, -1), SvgOutput::Point2(HARMONICS*1.5 ,-1));
+  }
+
   void FixedPointWaveLookup::preprocessUpSaw() {
+    return;
+
     for (int i = 0; i < FIXED_LOOKUP_SIZE; ++i) {
       up_saw_[0][i] = Wave::upsaw((1.0 * i) / FIXED_LOOKUP_SIZE);
 
@@ -110,6 +147,8 @@ namespace mopo {
       up_saw_[HARMONICS][index] = scale * sin_[0][p];
 
       for (int h = 1; h < HARMONICS; ++h) {
+        //up_saw_[HARMONICS - h][index] = up_saw_[HARMONICS][index];
+
         p = (p + i) % FIXED_LOOKUP_SIZE;
         mopo_float harmonic = scale * sin_[0][p] / (h + 1);
 
@@ -121,6 +160,79 @@ namespace mopo {
     }
 
     preprocessDiffs(up_saw_);
+
+    writeOutSvg("D:/temp/helm_up_saw.svg", up_saw_);
+  }
+
+
+  mopo_float Wave::s_custom_lookup[2 * 1024];
+  void FixedPointWaveLookup::preprocessCustom() {
+    auto& wave = up_saw_;
+
+    enum class CustomStrategy {
+      UP_SAW,
+      RANDOM,
+      RANDOM_10,
+    } custom_strategy = CustomStrategy::RANDOM;
+    std::default_random_engine generator;
+    std::uniform_real_distribution<mopo_float> distribution(-1,1);
+    switch (custom_strategy) {
+      case CustomStrategy::UP_SAW: {
+        mopo_float scale = 2.0 / PI;
+        for (int hw = 0; hw < HARMONICS+1; ++hw) {
+          if (hw % 2 == 0) {
+            custom_harmonic_weights_[hw] = scale / (hw + 1);
+          } else {
+            custom_harmonic_weights_[hw] = -scale / (hw + 1);
+          }
+        }
+      } break;
+      case CustomStrategy::RANDOM: {
+        for (int hw = 0; hw < HARMONICS+1; ++hw) {
+          custom_harmonic_weights_[hw] = distribution(generator) / (hw*hw + 1);
+        }
+      } break;
+      case CustomStrategy::RANDOM_10: {
+        for (int hw = 0; hw < 10; ++hw) {
+          custom_harmonic_weights_[hw] = distribution(generator);
+        }
+      } break;
+    }
+
+
+    for (int i = 0; i < FIXED_LOOKUP_SIZE; ++i) {
+      int index = (i + (FIXED_LOOKUP_SIZE / 2)) % FIXED_LOOKUP_SIZE;
+      int p = i;
+      wave[HARMONICS][index] = custom_harmonic_weights_[0] * sin_[0][p];
+
+      for (int h = 1; h < HARMONICS+1; ++h) {
+        p = (p + i) % FIXED_LOOKUP_SIZE;
+        mopo_float harmonic = custom_harmonic_weights_[h] * sin_[0][p];
+        wave[HARMONICS - h][index] = wave[HARMONICS - h + 1][index] + harmonic;
+      }
+    }
+
+    // Normalize
+    for (int h = 0; h <= HARMONICS; ++h) {
+      mopo_float peak = 0;
+      for (int i = 0; i < FIXED_LOOKUP_SIZE; ++i) {
+        if (peak < wave[h][i]) {
+          peak = wave[h][i];
+        }
+      }
+      if (peak == 0) break;
+      for (int i = 0; i < FIXED_LOOKUP_SIZE; ++i) {
+        wave[h][i] /= peak;
+      }
+    }
+
+//    preprocessDiffs(wave);
+
+    for (int i = 0; i < FIXED_LOOKUP_SIZE; ++i) {
+      Wave::s_custom_lookup[i] = wave[0][i];
+    }
+
+    writeOutSvg("D:/temp/helm_custom.svg", wave);
   }
 
   template<size_t steps>

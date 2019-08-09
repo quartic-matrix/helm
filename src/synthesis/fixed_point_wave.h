@@ -21,6 +21,7 @@
 #include "common.h"
 #include "wave.h"
 #include "utils.h"
+#include "svg_output.h"
 #include <climits>
 #include <cmath>
 #include <cstdlib>
@@ -57,6 +58,15 @@ namespace mopo {
       static const int HARMONICS = 63;
 
       typedef mopo_float (*wave_type)[2 * FIXED_LOOKUP_SIZE];
+#ifndef ECLIPSE_INDEXER
+#else
+//      typedef struct wave_type { mopo_float x[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE]; } wave_type;
+
+//      using wave_type_arr = mopo_float[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
+//      using wave_type = wave_type_arr*;
+
+//      using wave_type = mopo_float[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
+#endif
 
       FixedPointWaveLookup();
 
@@ -65,17 +75,24 @@ namespace mopo {
       void preprocessSquare();
       void preprocessDownSaw();
       void preprocessUpSaw();
+      void preprocessCustom();
       template<size_t steps>
       void preprocessStep(wave_type buffer);
       template<size_t steps>
       void preprocessPyramid(wave_type buffer);
       void preprocessDiffs(wave_type wave);
 
+      // How much of each harmonic should be included in the resulting
+      // wave form? The result will be normalized by dividing by the
+      // peak of the wave form, so the peak is always 1.
+      mopo_float custom_harmonic_weights_[HARMONICS + 1];
+
       mopo_float sin_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float triangle_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float square_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float down_saw_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float up_saw_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
+      mopo_float custom_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float three_step_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float four_step_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float eight_step_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
@@ -84,6 +101,8 @@ namespace mopo {
       mopo_float nine_pyramid_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
 
       wave_type waves_[kNumFixedPointWaveforms];
+    private:
+      void writeOutSvg(const std::string& filename, wave_type);
   };
 
   class FixedPointWave {
