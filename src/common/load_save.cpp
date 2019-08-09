@@ -712,7 +712,7 @@ File LoadSave::getFactoryBankDirectory() {
 
 File LoadSave::getBankDirectory() {
   if (!isInstalled())
-    return File("../../../patches");
+    return File::getCurrentWorkingDirectory().getChildFile("../../../patches");
 
   File patch_dir = File("");
 #ifdef LINUX
