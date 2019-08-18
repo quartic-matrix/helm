@@ -191,6 +191,8 @@ namespace mopo {
       ValueDetails::kLinear, false, "%", "Filter Resonance" },
     { "reverb_damping", 0.0, 1.0, 0, 0.5, 0.0, 1.0,
       ValueDetails::kLinear, false, "", "Reverb Damping" },
+    { "reverb_time_scale", 0.0, 1.0, 0, 0.5, 0.0, 1.0,
+      ValueDetails::kLinear, false, "", "Reverb Time Scale" },
     { "reverb_dry_wet", 0.0, 1.0, 0, 0.5, 0.0, 100.0,
       ValueDetails::kLinear, false, "%", "Reverb Mix" },
     { "reverb_feedback", 0.8, 1.0, 0, 0.9, 0.0, 100.0,

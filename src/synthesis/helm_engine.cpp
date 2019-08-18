@@ -225,6 +225,7 @@ namespace mopo {
     // Reverb Effect.
     Output* reverb_feedback = createMonoModControl("reverb_feedback", true);
     Output* reverb_damping = createMonoModControl("reverb_damping", true);
+    Output* reverb_time_scale = createMonoModControl("reverb_time_scale", true);
     Output* reverb_wet = createMonoModControl("reverb_dry_wet", true);
     Value* reverb_on = createBaseControl("reverb_on");
 
@@ -235,6 +236,7 @@ namespace mopo {
     reverb->plug(dc_filter, Reverb::kAudio);
     reverb->plug(reverb_feedback_clamped, Reverb::kFeedback);
     reverb->plug(reverb_damping, Reverb::kDamping);
+    reverb->plug(reverb_time_scale, Reverb::kStereoWidth);
     reverb->plug(reverb_wet, Reverb::kWet);
 
     BypassRouter* reverb_container = new BypassRouter();

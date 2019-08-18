@@ -35,6 +35,7 @@ class ReverbSection : public SynthSection {
     ScopedPointer<SynthButton> on_;
     ScopedPointer<SynthSlider> feedback_;
     ScopedPointer<SynthSlider> damping_;
+    ScopedPointer<SynthSlider> time_scale_;
     ScopedPointer<SynthSlider> dry_wet_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ReverbSection)

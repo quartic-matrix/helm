@@ -28,6 +28,9 @@ ReverbSection::ReverbSection(String name) : SynthSection(name) {
   addSlider(damping_ = new SynthSlider("reverb_damping"));
   damping_->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
 
+  addSlider(time_scale_ = new SynthSlider("reverb_time_scale"));
+  time_scale_->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
+
   addSlider(dry_wet_ = new SynthSlider("reverb_dry_wet"));
   dry_wet_->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
 
@@ -39,6 +42,7 @@ ReverbSection::~ReverbSection() {
   on_ = nullptr;
   feedback_ = nullptr;
   damping_ = nullptr;
+  time_scale_ = nullptr;
   dry_wet_ = nullptr;
 }
 
@@ -50,6 +54,7 @@ void ReverbSection::paintBackground(Graphics& g) {
   
   drawTextForComponent(g, TRANS("FEEDB"), feedback_);
   drawTextForComponent(g, TRANS("DAMP"), damping_);
+  drawTextForComponent(g, TRANS("TIME"), time_scale_);
   drawTextForComponent(g, TRANS("MIX"), dry_wet_);
 }
 
@@ -58,12 +63,13 @@ void ReverbSection::resized() {
   on_->setBounds(size_ratio_ * 2.0f, 0, title_width, title_width);
 
   int knob_width = getStandardKnobSize();
-  float space = (getWidth() - (3.0f * knob_width)) / 4.0f;
+  float space = (getWidth() - (4.0f * knob_width)) / 5.0f;
   int y = size_ratio_ * 30;
 
   feedback_->setBounds(space, y, knob_width, knob_width);
   damping_->setBounds((knob_width + space) + space, y, knob_width, knob_width);
-  dry_wet_->setBounds(2 * (knob_width + space) + space, y, knob_width, knob_width);
+  time_scale_->setBounds(2 * (knob_width + space) + space, y, knob_width, knob_width);
+  dry_wet_->setBounds(3 * (knob_width + space) + space, y, knob_width, knob_width);
 
   SynthSection::resized();
 }
