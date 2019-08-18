@@ -26,6 +26,8 @@ namespace mopo {
   Reverb::Reverb() : ProcessorRouter(kNumInputs, 2), current_dry_(0.0), current_wet_(0.0) {
     static const Value gain(FIXED_GAIN);
     
+    mopo_float timing_multiplier = 0.1;
+
     Bypass* audio_input = new Bypass();
     LinearSmoothBuffer* feedback_input = new LinearSmoothBuffer();
     cr::Clamp* damping_clamp = new cr::Clamp(0.0f, 1.0f);
@@ -48,8 +50,8 @@ namespace mopo {
 
     VariableAdd* left_comb_total = new VariableAdd(NUM_COMB);
     for (int i = 0; i < NUM_COMB; ++i) {
-      ReverbComb* comb = new ReverbComb(1 + mopo::MAX_SAMPLE_RATE * COMB_TUNINGS[i]);
-      Value* time = new cr::Value(COMB_TUNINGS[i]);
+      ReverbComb* comb = new ReverbComb(1 + mopo::MAX_SAMPLE_RATE * timing_multiplier*COMB_TUNINGS[i]);
+      Value* time = new cr::Value(timing_multiplier*COMB_TUNINGS[i]);
       addIdleProcessor(time);
       cr::TimeToSamples* samples = new cr::TimeToSamples();
       samples->plug(time);
@@ -65,7 +67,7 @@ namespace mopo {
 
     VariableAdd* right_comb_total = new VariableAdd(NUM_COMB);
     for (int i = 0; i < NUM_COMB; ++i) {
-      mopo_float tuning = COMB_TUNINGS[i] + STEREO_SPREAD;
+      mopo_float tuning = timing_multiplier*COMB_TUNINGS[i] + STEREO_SPREAD;
       ReverbComb* comb = new ReverbComb(1 + mopo::MAX_SAMPLE_RATE * tuning);
       Value* time = new cr::Value(tuning);
       addIdleProcessor(time);
@@ -86,8 +88,8 @@ namespace mopo {
 
     reverb_wet_left_ = left_comb_total;
     for (int i = 0; i < NUM_ALL_PASS; ++i) {
-      ReverbAllPass* all_pass = new ReverbAllPass(1 + mopo::MAX_SAMPLE_RATE * ALL_PASS_TUNINGS[i]);
-      Value* time = new cr::Value(ALL_PASS_TUNINGS[i]);
+      ReverbAllPass* all_pass = new ReverbAllPass(1 + mopo::MAX_SAMPLE_RATE * timing_multiplier*ALL_PASS_TUNINGS[i]);
+      Value* time = new cr::Value(timing_multiplier*ALL_PASS_TUNINGS[i]);
       addIdleProcessor(time);
       cr::TimeToSamples* samples = new cr::TimeToSamples();
       samples->plug(time);
@@ -103,7 +105,7 @@ namespace mopo {
 
     reverb_wet_right_ = right_comb_total;
     for (int i = 0; i < NUM_ALL_PASS; ++i) {
-      mopo_float tuning = ALL_PASS_TUNINGS[i] + STEREO_SPREAD;
+      mopo_float tuning = timing_multiplier*ALL_PASS_TUNINGS[i] + STEREO_SPREAD;
       ReverbAllPass* all_pass = new ReverbAllPass(1 + mopo::MAX_SAMPLE_RATE * tuning);
       Value* time = new cr::Value(tuning);
       addIdleProcessor(time);
