@@ -176,6 +176,7 @@ namespace mopo {
     } custom_strategy = CustomStrategy::RANDOM;
     std::default_random_engine generator;
     std::uniform_real_distribution<mopo_float> distribution(-1,1);
+    std::fill(custom_harmonic_weights_.begin(), custom_harmonic_weights_.end(), 0);
     switch (custom_strategy) {
       case CustomStrategy::UP_SAW: {
         mopo_float scale = 2.0 / PI;
@@ -188,8 +189,8 @@ namespace mopo {
         }
       } break;
       case CustomStrategy::RANDOM: {
-        for (int hw = 0; hw < HARMONICS+1; ++hw) {
-          custom_harmonic_weights_[hw] = distribution(generator) / (hw*hw + 1);
+        for (int hw = 0; hw < HARMONICS+1; hw+=4) {
+          custom_harmonic_weights_[hw] = distribution(generator) / (hw*hw*0.1 + 1);
         }
       } break;
       case CustomStrategy::RANDOM_10: {

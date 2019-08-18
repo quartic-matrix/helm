@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <array>
 
 namespace mopo {
 
@@ -85,7 +86,7 @@ namespace mopo {
       // How much of each harmonic should be included in the resulting
       // wave form? The result will be normalized by dividing by the
       // peak of the wave form, so the peak is always 1.
-      mopo_float custom_harmonic_weights_[HARMONICS + 1];
+      std::array<mopo_float, HARMONICS + 1> custom_harmonic_weights_;
 
       mopo_float sin_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
       mopo_float triangle_[HARMONICS + 1][2 * FIXED_LOOKUP_SIZE];
